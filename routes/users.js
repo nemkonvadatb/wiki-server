@@ -20,13 +20,13 @@ router.post("/login", async (req, res, next) => {
       .collection("user")
       .findOne({ email: req.body.email });
     if (!user) {
-      res.sendStatus(400);
+      res.status(400).send({ message: "User doesn't exists" });
     } else {
       await bcrypt.compare(req.body.password, user.password).then((result) => {
         if (result) {
           const token = jwt.sign(user, process.env.JWT_SECRET);
           res.status(200).json({ token });
-        } else res.sendStatus(401);
+        } else res.status(401).send({ message: "Bad password" });
       });
     }
   } catch (e) {
@@ -41,7 +41,7 @@ router.post("/create", async (req, res, next) => {
       .findOne({ email: req.body.email });
 
     if (checkUser) {
-      res.sendStatus(409);
+      res.status(409).send({ message: "Existing user" });
     } else {
       await bcrypt
         .hash(req.body.password, parseInt(process.env.PASSWORD_SALT))
@@ -51,8 +51,8 @@ router.post("/create", async (req, res, next) => {
       await req.db
         .collection("user")
         .insertOne(req.body)
-        .then(() => res.sendStatus(201))
-        .catch(() => res.sendStatus(409));
+        .then(() => res.status(201).send({ message: "Everything is fine!" }))
+        .catch(() => res.status(409).send({ message: "Something went wrong" }));
     }
   } catch (e) {
     next(e);
