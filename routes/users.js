@@ -3,11 +3,12 @@ var router = express.Router();
 const auth = require("../auth-gates");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+var ObjectId = require('mongodb').ObjectId; 
 
-router.get("/:name", auth, async (req, res, next) => {
+router.get("/:id", auth, async (req, res, next) => {
   try {
     res.send(
-      await req.db.collection("user").find({ name: req.params.name }).toArray()
+      await req.db.collection("user").find({ "_id": ObjectId(req.params.id)}).toArray()
     );
   } catch (e) {
     next(e);
@@ -25,7 +26,7 @@ router.post("/login", async (req, res, next) => {
       await bcrypt.compare(req.body.password, user.password).then((result) => {
         if (result) {
           const token = jwt.sign(user, process.env.JWT_SECRET);
-          res.status(200).json({ token });
+          res.status(200).json({ token: token, id: user._id });
         } else res.status(401).send({ message: "Bad password" });
       });
     }
