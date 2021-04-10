@@ -49,12 +49,30 @@ router.post("/create", async (req, res, next) => {
         .then((hash) => {
           req.body.password = hash;
         });
+      req.body.role="user";
+      req.body.article_participant = []
       await req.db
         .collection("user")
         .insertOne(req.body)
-        .then(() => res.status(201).send({ message: "Everything is fine!" }))
+        .then((e) => res.status(201).send({ message: "Everything is fine!"}))
         .catch(() => res.status(409).send({ message: "Something went wrong" }));
     }
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.put("/update", auth, async (req, res, next) => {
+  try {
+    const checkUser = await req.db
+    .collection("user")
+    .findOne({ _id: ObjectId(req.body._id) });
+
+    await req.db
+      .collection("user")
+      .updateOne({ "_id": checkUser._id}, {$set: {"name":req.body.name, "specialization":req.body.specialization, "institution":req.body.institution, "academic_degree":req.body.academic_degree, "lang":req.body.lang.split(" ")}})
+      .then(() => res.status(201).send({ message: "Everything is fine! user updated" }))
+      .catch((e) => res.status(409).send({ message: "Something went wrong!" + e }));
   } catch (e) {
     next(e);
   }
