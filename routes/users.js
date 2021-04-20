@@ -66,11 +66,11 @@ router.put("/update", auth, async (req, res, next) => {
   try {
     const checkUser = await req.db
     .collection("user")
-    .findOne({ _id: ObjectId(req.body._id) });
+    .findOne({ email: req.body.email });
 
     await req.db
       .collection("user")
-      .updateOne({ "_id": checkUser._id}, {$set: {"name":req.body.name, "specialization":req.body.specialization, "institution":req.body.institution, "academic_degree":req.body.academic_degree, "lang":req.body.lang.split(" ")}})
+      .updateOne({ "email": checkUser.email}, {$set: {"name":req.body.name, "specialization":req.body.specialization, "institution":req.body.institution, "academic_degree":req.body.academic_degree, "lang":req.body.lang.split(" ")}})
       .then(() => res.status(200).send({ message: "Everything is fine! user updated" }))
       .catch((e) => res.status(400).send({ message: "Something went wrong!" + e }));
   } catch (e) {

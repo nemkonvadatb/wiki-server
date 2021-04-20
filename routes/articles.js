@@ -66,9 +66,11 @@
     try {
       const checkArticle = await req.db
         .collection("article_details")
-        .findOne({ _id: ObjectId(req.body._id) });
+        .findOne({ lang: req.body.lang, article_id: req.body.article_id });
 
-      if (!checkArticle) {
+      if (!req.body.lang || !req.body.article_id){
+        res.status(400).send({ message: "Lang or article_id is missing"});
+      } else if (!checkArticle) {
         res.status(400).send({ message: "Not existing article_details"});
       } else if(!req.body.context || !req.body.title || !req.body.lang) {
         res.status(400).send({ message: "Missing data!" });
