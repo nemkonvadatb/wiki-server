@@ -70,7 +70,7 @@ router.put("/update", auth, async (req, res, next) => {
 
     await req.db
       .collection("user")
-      .updateOne({ "email": checkUser.email}, {$set: {"name":req.body.name, "specialization":req.body.specialization, "institution":req.body.institution, "academic_degree":req.body.academic_degree, "lang":req.body.lang.split(" ")}})
+      .updateOne({ "email": checkUser.email}, {$set: {"name":req.body.name, "specialization":req.body.specialization, "institution":req.body.institution, "academic_degree":req.body.academic_degree, "lang":req.body.lang, "role":req.body.role}})
       .then(() => res.status(200).send({ message: "Everything is fine! user updated" }))
       .catch((e) => res.status(400).send({ message: "Something went wrong!" + e }));
   } catch (e) {
