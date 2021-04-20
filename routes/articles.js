@@ -77,7 +77,7 @@
     } else {
         await req.db
           .collection("article_details")
-          .updateOne({ "_id": checkArticle._id}, { $set: {"context": req.body.context, "lang":req.body.lang, "title": req.body.title}})
+          .updateOne({ "_id": checkArticle._id}, { $set: {"context": req.body.context, "title": req.body.title}})
           .then(() => res.status(200).send({ message: "Everything is fine! article_details updated" }))
           .catch((e) => res.status(400).send({ message: "Something went wrong!" + e }));
       }
