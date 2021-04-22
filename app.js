@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const user = require("./routes/users");
+const article = require("./routes/articles");
 const helmet = require("helmet");
 const compression = require("compression");
 const auth = require("./auth-gates");
@@ -22,6 +23,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/users", user);
+app.use("/articles", article);
 
 MongoClient.connect(
   `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_URI}?retryWrites=true&w=majority`,

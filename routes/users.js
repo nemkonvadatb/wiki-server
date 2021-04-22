@@ -20,6 +20,7 @@ router.post("/login", async (req, res, next) => {
     const user = await req.db
       .collection("user")
       .findOne({ email: req.body.email });
+
     if (!user) {
       res.status(400).send({ message: "User doesn't exists" });
     } else {
@@ -27,7 +28,7 @@ router.post("/login", async (req, res, next) => {
         if (result) {
           const token = jwt.sign(user, process.env.JWT_SECRET);
           res.status(200).json({ token: token, id: user._id });
-        } else res.status(401).send({ message: "Bad password" });
+        } else res.status(400).send({ message: "Bad password" });
       });
     }
   } catch (e) {
@@ -42,19 +43,35 @@ router.post("/create", async (req, res, next) => {
       .findOne({ email: req.body.email });
 
     if (checkUser) {
-      res.status(409).send({ message: "Existing user" });
+      res.status(400).send({ message: "Existing user" });
     } else {
       await bcrypt
         .hash(req.body.password, parseInt(process.env.PASSWORD_SALT))
         .then((hash) => {
           req.body.password = hash;
         });
-      await req.db
-        .collection("user")
-        .insertOne(req.body)
-        .then(() => res.status(201).send({ message: "Everything is fine!" }))
-        .catch(() => res.status(409).send({ message: "Something went wrong" }));
+      req.body.role="user";
+      req.body.article_participant = []
+
+      res.status(200).send(
+        await req.db.collection("user").insertOne(req.body)
+      );
     }
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.put("/update", auth, async (req, res, next) => {
+  try {
+    const checkUser = await req.db
+    .collection("user")
+    .findOne({ email: req.body.email });
+
+    res.status(200).send(
+      await req.db.collection("user").updateOne({ "email": checkUser.email}, {$set: req.body})
+    );
+    
   } catch (e) {
     next(e);
   }
