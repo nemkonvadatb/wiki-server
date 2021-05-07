@@ -8,7 +8,7 @@ var ObjectId = require('mongodb').ObjectId;
 router.get("/:id", auth, async (req, res, next) => {
   try {
     res.send(
-      await req.db.collection("user").find({ "_id": ObjectId(req.params.id)}).toArray()
+      await req.db.collection("user").find({ "_id": ObjectId(req.params.id)})
     );
   } catch (e) {
     next(e);
@@ -26,7 +26,7 @@ router.post("/login", async (req, res, next) => {
     } else {
       await bcrypt.compare(req.body.password, user.password).then((result) => {
         if (result) {
-          const token = jwt.sign(user, process.env.JWT_SECRET);
+          const token = jwt.sign(user, 'valamititkosstring');
           res.status(200).json({ token: token, id: user._id });
         } else res.status(400).send({ message: "Bad password" });
       });

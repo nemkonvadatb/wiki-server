@@ -88,22 +88,60 @@ router.get("/listUnderCons", auth, async (req, res, next) => {
   }
 });
 
-router.get("/:id/:lang", async (req, res, next) => {
+router.get("/getArticleByIdLang/:id/:lang", async (req, res, next) => {
   try {
     res.status(200).send(
       await req.db.collection("article_details")
-        .findOne({ "article_id": req.params.id, "lang_id": req.params.lang })
+        .findOne({ "article_id": parseFloat(req.params.id), "lang_id": req.params.lang })
     );
   } catch (e) {
     next(e);
   }
 });
 
-router.get("/:id", async (req, res, next) => {
+router.get("/getArticleById/:id", async (req, res, next) => {
   try {
     res.status(200).send(
       await req.db.collection("article")
-        .findOne({ "_id": req.params.id })
+        .findOne({ "_id": parseFloat(req.params.id) })
+    );
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/getArticleDetailsHistoryById/:id", async (req, res, next) => {
+  try {
+    res.status(200).send(
+      await req.db.collection("article_details_history")
+        .findOne({ "_id": ObjectId(req.params.id) })
+    );
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.get("/getArticleDetailsById/:id", async (req, res, next) => {
+  try {
+    res.status(200).send(
+      await req.db.collection("article_details")
+        .findOne({ "_id": ObjectId(req.params.id) })
+    );
+  } catch (e) {
+    next(e);
+  }
+});
+
+// hívás "localhost:8080/articles/getArticleDetailsByText/vegre kesz"
+router.use("/getArticleDetailsByText/:text", async (req, res, next) => {
+  try {
+    req.db.collection("article_details").createIndex( { context: "text"} );
+    res.status(200).send(
+      await req.db.collection("article_details")
+        .find({ $text: { $search: req.params.text }},
+			        { score: { $meta: "textScore" }})
+		.sort({ score: { $meta: "textScore"}})
+		.toArray()
     );
   } catch (e) {
     next(e);
