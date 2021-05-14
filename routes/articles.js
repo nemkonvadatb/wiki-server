@@ -7,6 +7,8 @@ var ObjectId = require('mongodb').ObjectId;
 // {"article_id": 1618948513168, "context": "proba 999 + 1", "title":"P999 + 1", "lang_id": "hu"}
 router.post("/create", auth, async (req, res, next) => {
   try {
+    req.body.article_id = parseFloat(req.body.article_id);
+
     const checkArticleId = await req.db
       .collection("article")
       .findOne({ _id: req.body.article_id });
@@ -57,19 +59,27 @@ router.post("/create", auth, async (req, res, next) => {
 // {"_id": "607f34f30f48ce4c2487d0b4", "article_id": 1618948513168, "state": "accepted", "context": "proba 999 + 1", "title":"P999 + 1", "lang_id": "hu"}
 router.put("/stateChange", auth, async (req, res, next) => {
   try {
-    req.body.reviewer_id = req.userId;
+    const checkUserRole = await req.db
+    .collection("user")
+    .findOne({ _id: ObjectId(req.userId) });
 
-    if (req.body.state === "accepted") {
-      archiveArtDetH(req);
-      updateArtDHState(req);
-      updateUserArticles(req, req.body.author_id);
-      updateArticleLang(req);
-      updateArtDet(req);
+    if (checkUserRole.role === "lector"){
+      req.body.reviewer_id = req.userId;
 
-      res.status(200).send({ message: "updated userArticle, article_det_h, article, " });
+      if (req.body.state === "accepted") {
+        archiveArtDetH(req);
+        updateArtDHState(req);
+        updateUserArticles(req, req.body.author_id);
+        updateArticleLang(req);
+        updateArtDet(req);
+
+        res.status(200).send({ message: "updated userArticle, article_det_h, article, " });
+      } else {
+        updateArtDHState(req);
+        res.status(200).send({ message: "article_det_h changed status to rejected" });
+      }
     } else {
-      updateArtDHState(req);
-      res.status(200).send({ message: "article_det_h changed status to rejected" });
+      res.status(400).send({ message: "only lector can change the status" });
     }
   } catch (e) {
     next(e);
@@ -79,10 +89,18 @@ router.put("/stateChange", auth, async (req, res, next) => {
 // csak lektor listázhatja a nem elbírélt cikkeket
 router.get("/listUnderCons", auth, async (req, res, next) => {
   try {
-    res.status(200).send(
-      await req.db.collection("article_details_history")
-        .find({ "state": "underConsideration" }).toArray()
-    );
+    const checkUserRole = await req.db
+    .collection("user")
+    .findOne({ _id: ObjectId(req.userId) });
+
+    if (checkUserRole.role === "lector"){
+      res.status(200).send(
+        await req.db.collection("article_details_history")
+          .find({"state": "underConsideration" }).toArray()
+      );
+    } else{
+      res.status(400).send({ message: "only lector can list articles underConsideration" });
+    }
   } catch (e) {
     next(e);
   }
@@ -92,7 +110,7 @@ router.get("/getArticleByIdLang/:id/:lang", async (req, res, next) => {
   try {
     res.status(200).send(
       await req.db.collection("article_details")
-        .findOne({ "article_id": parseFloat(req.params.id), "lang_id": req.params.lang })
+        .findOne({"article_id": parseFloat(req.params.id), "lang_id": req.params.lang })
     );
   } catch (e) {
     next(e);
