@@ -148,6 +148,19 @@ router.use("/getArticleDetailsByText/:text", async (req, res, next) => {
   }
 });
 
+
+router.get("/getAllArticleDetails", async (req, res, next) => {
+  try {
+    allArticleD = await req.db
+      .collection("article_details")
+      .find().toArray();
+    
+    res.status(200).send(allArticleD.reverse());
+  } catch (e) {
+    next(e);
+  }
+});
+
 const createArticleDetailsHistory = async (req) => {
   req.body.author_id = req.userId;
   await req.db
