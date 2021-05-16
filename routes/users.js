@@ -26,7 +26,7 @@ router.post("/login", async (req, res, next) => {
     } else {
       await bcrypt.compare(req.body.password, user.password).then((result) => {
         if (result) {
-          const token = jwt.sign(user, parseInt(process.env.PASSWORD_SALT));
+          const token = jwt.sign(user, 'valamititkosstring');
           res.status(200).json({ token: token, id: user._id });
         } else res.status(400).send({ message: "Bad password" });
       });
